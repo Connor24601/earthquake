@@ -1,3 +1,14 @@
-p {
-    color:red
+body
+{
+    background-color:black
 }
+
+p 
+{
+    color: white;
+    font-size:2em;
+    text-align:center;
+    transition: all 1s ease
+}
+
+
