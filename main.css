@@ -3,12 +3,23 @@ body
     background-color:black
 }
 
-p 
+.text 
 {
+    position: fixed;
     color: white;
-    font-size:2em;
-    text-align:center;
-    transition: all 1s ease
+    font-size: 5em;
+    text-align: center;
+    transition: all 1s ease-in-out;
+    visibility: hidden;
+    font-family: arial, sans-serif
 }
 
-
+#text1 
+{
+    color:white
+}
+#text2
+{
+    padding-left:4em;
+    padding-top:1em
+}
