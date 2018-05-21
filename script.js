@@ -1,46 +1,52 @@
 initialize();
 
-function initialize() {
-    text1 = document.getElementById("text1");
-    text2 = document.getElementById("text2");
-    //text1.style.visibility = "visible";
-    //requestAnimationFrame(fadeIn);
-    fade(text1, 1);
-    
-    
 
+function initialize() {
+    window.onload = animate;
 }
+
+
+function animate()
+{
+    var text1 = document.getElementById("text1");
+    var text2 = document.getElementById("text2");
+    
+    if (text1.innerHTML == "test text one" && text1.style.visibility == "")
+    {
+        console.log("anim1");
+        text1.style.visibility = "visible";
+        fade(text1, 1);
+        return;
+    }
+    if (text1.innerHTML == "test text one" && text2.style.visibility == "")
+    {
+        console.log("anim2");
+        text2.style.visibility = "visible";
+        fade(text2, 1);
+        return;
+    }
+    if (text1.innerHTML == "test text one" && text2.style.visibility == "visible" && text1.style.opacity != 0)
+    {
+        console.log("anim3");
+        fade(text1, 0);
+        //move text 2
+        return;
+    }
+    if (text1.style.opacity == 0 && text1.style.visibility == "visible")
+    {
+        console.log("anim4");
+        text1.style.visibility = "hidden";
+        return;
+    }
+    
+}
+
 
 if (!window.requestAnimationFrame) {
     window.requestAnimationFrame = function(fn){
         setTimeout(fn,16.66);
     }
 }
-
-var opacity = 30;
-function fadeIn() {
-    opacity++;
-    document.getElementById("text1").style.opacity = opacity/100;
-    if (opacity < 100){
-        requestAnimationFrame(fadeIn);
-    }
-}
-
-
-
-function fadeIn()
-{
-    document.getElementById("text1").style.opacity += .01;
-    if (document.getElementById("text1").style.opacity < 1)
-    {
-        requestAnimationFrame(fadeIn);
-    }
-}
-
-
-
-
-
 
 
 function fade(element, target)
@@ -50,6 +56,7 @@ function fade(element, target)
     {
         
         if (element.style.opacity == target){
+            animate();
             return;
         }
         if (element.style.opacity < target)

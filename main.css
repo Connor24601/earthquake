@@ -1,5 +1,7 @@
 body
 {
+    margin : 0px;
+    padding: 0px;
     background-color:black
 }
 
@@ -7,21 +9,21 @@ body
 {
     position: fixed;
     color: white;
-    font-size: 5em;
+    font-size: 5vw;
     text-align: center;
     opacity:0;
-    transition: all 0s ease-in-out;
+    transition: all 0s linear;
     visibility: hidden;
     font-family: arial, sans-serif
 }
 
 #text1 
 {
-    visibility: visible;
-    transition: all 0s ease-in-out
+    padding-left: 20vw;
+    padding-top: 30vh;
 }
 #text2
 {
-    padding-left:4em;
-    padding-top:1em
+    padding-left:40vw;
+    padding-top:40vh
 }
