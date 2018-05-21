@@ -9,14 +9,16 @@ body
     color: white;
     font-size: 5em;
     text-align: center;
-    transition: all 1s ease-in-out;
+    opacity:0;
+    transition: all 0s ease-in-out;
     visibility: hidden;
     font-family: arial, sans-serif
 }
 
 #text1 
 {
-    color:white
+    visibility: visible;
+    transition: all 0s ease-in-out
 }
 #text2
 {

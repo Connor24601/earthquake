@@ -3,34 +3,66 @@ initialize();
 function initialize() {
     text1 = document.getElementById("text1");
     text2 = document.getElementById("text2");
-    text1.style.visibility = "visible";
-    text2.style.visibility = "visible";
-    text1.style.visibility = "hidden";
+    //text1.style.visibility = "visible";
+    //requestAnimationFrame(fadeIn);
+    fade(text1, 1);
     
-
-    document.getElementById("body").onclick = speedUp;
-
-}
-
-function speedUp()
-{
-    text = document.getElementByClassName("text");
     
 
 }
-function fadeIn(el, time) {
-  el.style.opacity = 0;
 
-  var last = +new Date();
-  var tick = function() {
-    el.style.opacity = +el.style.opacity + (new Date() - last) / time;
-    last = +new Date();
-
-    if (+el.style.opacity < 1) {
-      (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = function(fn){
+        setTimeout(fn,16.66);
     }
-  };
+}
 
-  tick();
+var opacity = 30;
+function fadeIn() {
+    opacity++;
+    document.getElementById("text1").style.opacity = opacity/100;
+    if (opacity < 100){
+        requestAnimationFrame(fadeIn);
+    }
+}
+
+
+
+function fadeIn()
+{
+    document.getElementById("text1").style.opacity += .01;
+    if (document.getElementById("text1").style.opacity < 1)
+    {
+        requestAnimationFrame(fadeIn);
+    }
+}
+
+
+
+
+
+
+
+function fade(element, target)
+{
+    var opacity = element.style.opacity * 100;
+    function fadeRecur()
+    {
+        
+        if (element.style.opacity == target){
+            return;
+        }
+        if (element.style.opacity < target)
+        {
+            opacity++;
+        }
+        else
+        {
+            opacity--;
+        }
+        element.style.opacity = opacity/100;
+        requestAnimationFrame(fadeRecur);
+    }
+    requestAnimationFrame(fadeRecur);
 }
 
