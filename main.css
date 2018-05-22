@@ -7,9 +7,9 @@ body
 
 .text 
 {
-    position: fixed;
+    position: sticky;
     color: white;
-    font-size: 5vw;
+    font-size: 5vh;
     text-align: center;
     opacity:0;
     transition: all 0s linear;
@@ -19,11 +19,16 @@ body
 
 #text1 
 {
-    padding-left: 20vw;
-    padding-top: 30vh;
+    padding-left:5vw;
+    width: 90vw;
+    padding-top: 27vh;
+    height: 8vh;
 }
 #text2
 {
-    padding-left:40vw;
-    padding-top:40vh
+    width:10vw;
+    padding-left:45vw;
+    padding-top:10vh;
+    height:10vh;
+    /*transition: padding 2s ease-in-out, color 1s ease-in-out;*/
 }
