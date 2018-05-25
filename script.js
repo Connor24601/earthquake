@@ -7,14 +7,17 @@ function initialize() {
     data = [];
     isHomeGone = isHomeDestroyed();
     getQuakeList();
-    recentDangerous = {"index":0,"timeSince":""};
-    isThunking=true;
+    recentDangerous = {"earthquake":null, "timeSince":null};
+    isRecentDangerousFound = false;
+    getRecentDangerous();
+    
+
 }
 
-var isThunking;
 var anim;
 var isHomeGone;
 var isDataCompiled;
+var isRecentDangerousFound;
 var recentDangerous;
 
 function animate()
@@ -61,21 +64,21 @@ function animate()
         fade(text2, 0);
         return;
     }
-    if (anim == 4 && !isDataCompiled)
+    if (anim == 4 && !isRecentDangerousFound)
     {
         console.log("Our data is not yet ready but we need it.");
         anim--;
         setTimeout(animate, 500);
         return;
     }
-    if (anim == 4 && isDataCompiled)
+    if (anim == 4 && isRecentDangerousFound)
     {
         
         text1.innerHTML = "";
-        text1.innerHTML += timeBetweenDates(new Date(), new Date(data[x]["properties"]["time"]));
+        text1.innerHTML += recentDangerous["timeSince"];
         text1.innerHTML += " ago people ";
         
-        text1.innerHTML += data[x]["properties"]["place"];
+        text1.innerHTML += recentDangerous["quake"]["properties"]["place"];
         if (isHomeGone)
         {
             text1.innerHTML += " shared my misfortune.";
@@ -166,7 +169,7 @@ function getQuakeList()
 {
     var startdate = new Date();
     startdate.setFullYear(startdate.getFullYear()-1);
-    var minmag = 4;
+    var minmag = 3;
     var url = "https://earthquake.usgs.gov/fdsnws/event/1/count?format=geojson";
     var cond;
     do {
@@ -185,7 +188,6 @@ function getQuakeList()
     var url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson";
     url += "&starttime=" + startdate.toISOString();
     url += "&minmagnitude=" + minmag;
-    var rlist;
     console.log("requesting data...");
     fetch(url, {method: 'get'})
     .then((response) => response.json())
@@ -200,12 +202,31 @@ function getQuakeList()
             }
         }
         
-        console.log("dangerous quake list compiled. Finding recent dangerous...");
-        recentDangerous["index"] = selectQuake();
-        date2 = new Date(data[recentDangerous["index"]]["properties"]["time"]);
-        recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
-        console.log("found recent dangerous, anim4 can continue");
-        console.log(
+        console.log("dangerous quake list compiled.");
+        if (anim < 3)
+        {
+            console.log("refreshing recentDangerous");
+            recentDangerous["quake"] = data[selectQuake()];
+            date2 = new Date(recentDangerous["quake"]["properties"]["time"]);
+            recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
+            isRecentDangerousFound = true;
+            console.log("updated recentDangerous");
+        }
+        else
+        {
+            console.log("recentDangerous temp search already found and used.");
+            if (recentDangerous["quake"]["properties"]["place"] == data[selectQuake()]["properties"]["place"])
+            {
+                console.log("quick recentDangerous was the same as actual.");
+            }
+            else
+            {
+                console.log("quick recentDangerous was not actual. Actual had mag = "
+                    + data[selectQuake()]["quake"]["properties"]["mag"] + " at place " 
+                    + data[selectQuake()]["quake"]["properties"]["place"]);
+            }
+        }
+        
         isDataCompiled = true;
 
     });
@@ -226,6 +247,41 @@ function timeBetweenDates(date1, date2)
     return days + " days, " + hours + " hours, " + minutes + " minutes and " + seconds + " seconds";
 }
 
+function getRecentDangerous()
+{
+    var startdate = new Date();
+    console.log("fetching recentDangerous separately...");
+    startdate.setFullYear(startdate.getFullYear()-1);
+    var url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson";
+    url += "&starttime=" + startdate.toISOString();
+    url += "&minmagnitude=5.5";
+    fetch(url, {method: 'get'})
+    .then((response) => response.json())
+    .then(function(bigData) {
+        console.log("Preliminary data recieved, isolating recentDangerous...");
+        for (var i = 0; i < bigData["features"].length; i++)
+        {
+            if (bigData["features"][i]["properties"]["alert"] == "red")
+            {
+                recentDangerous["quake"] = bigData["features"][i];
+                date2 = new Date(recentDangerous["quake"]["properties"]["time"]);
+                recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
+                isRecentDangerousFound=true;
+                console.log("recentDangerous red alert found");
+                return;
+            }
+            else if (bigData["features"][i]["properties"]["alert"] == "yellow" && !recentDangerous)
+            {
+                recentDangerous["quake"] = bigData["features"][i];
+            }
+        }
+        date2 = new Date(recentDangerous["quake"]["properties"]["time"]);
+        recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
+        isRecentDangerousFound = true;
+        console.log("recentDangerous found, is yellow alert");
+        return;
+    });
+}
 
 
 function selectQuake()
