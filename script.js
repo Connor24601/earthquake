@@ -107,6 +107,9 @@ function animate()
         text2.style.paddingLeft = "15vw";
         text2.style.width = "70vw";
         text2.style.textAlign = "center";
+        text2.innerHTML = 'A magnitude '
+        text2.innerHTML += recentDangerous["quake"]["properties"]["mag"]
+        text2.innerHTML += " earthquake hit. It was classified as a status "
         //text2.innerHTML = "A magnitude X earthquake hit on Date. It was one of xyz extremely dangerous earthquakes this year, causing large potential loss of life.";
         text2.style.fontSize = "2vmin";
         text2.style.color = "white";
@@ -189,6 +192,7 @@ function getQuakeList()
     url += "&starttime=" + startdate.toISOString();
     url += "&minmagnitude=" + minmag;
     console.log("requesting data...");
+    
     fetch(url, {method: 'get'})
     .then((response) => response.json())
     .then(function(bigData) {
@@ -196,17 +200,18 @@ function getQuakeList()
         for (var i = 0; i < bigData["features"].length; i++)
         {
             if (bigData["features"][i]["properties"]["alert"] == "red" ||
-                bigData["features"][i]["properties"]["alert"] == "yellow")
+                bigData["features"][i]["properties"]["alert"] == "yellow" ||
+                bigData["features"][i]["properties"]["alert"] == "orange")
             {
                 data.push(bigData["features"][i]);
             }
         }
         
         console.log("dangerous quake list compiled.");
-        if (anim < 3)
+        if (anim <= 3)
         {
             console.log("refreshing recentDangerous");
-            recentDangerous["quake"] = data[selectQuake()];
+            recentDangerous["quake"] = data[findDangerousQuake(data)];
             date2 = new Date(recentDangerous["quake"]["properties"]["time"]);
             recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
             isRecentDangerousFound = true;
@@ -215,15 +220,15 @@ function getQuakeList()
         else
         {
             console.log("recentDangerous temp search already found and used.");
-            if (recentDangerous["quake"]["properties"]["place"] == data[selectQuake()]["properties"]["place"])
+            if (recentDangerous["quake"]["properties"]["place"] == data[findDangerousQuake(data)]["properties"]["place"])
             {
                 console.log("quick recentDangerous was the same as actual.");
             }
             else
             {
                 console.log("quick recentDangerous was not actual. Actual had mag = "
-                    + data[selectQuake()]["quake"]["properties"]["mag"] + " at place " 
-                    + data[selectQuake()]["quake"]["properties"]["place"]);
+                    + data[findDangerousQuake(data)]["quake"]["properties"]["mag"] + " at place " 
+                    + data[findDangerousQuake(data)]["quake"]["properties"]["place"]);
             }
         }
         
@@ -247,6 +252,26 @@ function timeBetweenDates(date1, date2)
     return days + " days, " + hours + " hours, " + minutes + " minutes and " + seconds + " seconds";
 }
 
+function findDangerousQuake(dataset)
+{
+
+    x = 0;
+    for (var i = 0; i < dataset.length; i++)
+    {
+        current = dataset[i];
+        if (current["properties"]["sig"] > dataset[x]["properties"]["sig"])
+        {
+            x = i;
+        }
+        if (current["properties"]["alert"] == "red")
+        {
+            return x;
+        }
+    }
+
+    return x;
+}
+
 function getRecentDangerous()
 {
     var startdate = new Date();
@@ -254,48 +279,58 @@ function getRecentDangerous()
     startdate.setFullYear(startdate.getFullYear()-1);
     var url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson";
     url += "&starttime=" + startdate.toISOString();
-    url += "&minmagnitude=5.5";
+    url += "&minmagnitude=5";
     fetch(url, {method: 'get'})
     .then((response) => response.json())
     .then(function(bigData) {
         console.log("Preliminary data recieved, isolating recentDangerous...");
+        /*
         for (var i = 0; i < bigData["features"].length; i++)
         {
-            if (bigData["features"][i]["properties"]["alert"] == "red")
+            current = bigData["features"][i]["properties"];
+            if (current["alert"] == "red" && 
+                current["sig"] > recentDangerous["quake"]["properties"]["sig"])
             {
                 recentDangerous["quake"] = bigData["features"][i];
-                date2 = new Date(recentDangerous["quake"]["properties"]["time"]);
+                date2 = new Date(current["time"]);
                 recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
                 isRecentDangerousFound=true;
                 console.log("recentDangerous red alert found");
                 return;
             }
-            else if (bigData["features"][i]["properties"]["alert"] == "yellow" && !recentDangerous)
+            else if (current["alert"] == "orange" && (!recentDangerous["quake"] ||
+                recentDangerous["quake"]["properties"]["alert"] == "yellow"))
+            {
+                console.log("orange alert found.");// orange is technically a value used.
+                // in practice, i've looked at thousands and have never seen one.
+                // so, i guess they stopped doing orange alerts, which is good,
+                // because this if statement would need to be even bigger accounting for sig.
+                recentDangerous["quake"] = bigData["features"][i];
+            }
+            else if (current["alert"] == "yellow" && !recentDangerous["quake"] && 
+                current["sig"] > recentDangerous["quake"]["properties"]["sig"])
             {
                 recentDangerous["quake"] = bigData["features"][i];
             }
-        }
+            else if (!current["alert"] && recentDangerous["quake"]["properties"]["sig"] < current["sig"])
+            {
+                console.log("we suspect this null alert earthquake is more powerful.");
+                // like orange alerts, this is something i haven't seen yet.
+                // i guess significant earthquakes are all properly given alert values.
+                // still, good redundancy.
+                console.log(recentDangerous["quake"]);
+                console.log(current);
+                recentDangerous["quake"] = bigData["features"][i];
+            }
+        }*/
+        recentDangerous["quake"] = bigData["features"][findDangerousQuake(bigData["features"])];
         date2 = new Date(recentDangerous["quake"]["properties"]["time"]);
         recentDangerous["timeSince"] = timeBetweenDates(new Date(), date2);
         isRecentDangerousFound = true;
-        console.log("recentDangerous found, is yellow alert");
+        console.log("recentDangerous found.");
         return;
     });
 }
 
 
-function selectQuake()
-{
 
-    x = 0;
-    while (data[x]["properties"]["alert"]!='red')
-    {
-        x++;
-        if (x == data.length)
-        {    
-            x = 0;
-            break;
-        }
-    }
-    return x;
-}
